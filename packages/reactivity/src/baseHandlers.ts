@@ -4,8 +4,8 @@ const get = createGetter()
 const set = createSetter()
 
 export const mutableHandles: ProxyHandler<object> = {
-  set,
-  get
+  get,
+  set
 }
 
 /**

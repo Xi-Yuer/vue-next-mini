@@ -153,8 +153,8 @@ var Vue = (function (exports) {
     var get = createGetter();
     var set = createSetter();
     var mutableHandles = {
-        set: set,
-        get: get
+        get: get,
+        set: set
     };
     /**
      * 创建并返回一个getter函数
