@@ -4,6 +4,9 @@ var Vue = (function (exports) {
     var isObject = function (value) {
         return value !== null && typeof value === 'object';
     };
+    var hasChanged = function (newValue, oldValue) {
+        return !Object.is(newValue, oldValue);
+    };
 
     /******************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -214,14 +217,22 @@ var Vue = (function (exports) {
             this.__v_isShallow = __v_isShallow;
             this.dep = undefined;
             this.__v_isRef = true;
+            this._rawValue = value; // 旧值
             this._value = __v_isShallow ? value : toReactive(value);
         }
         Object.defineProperty(RefImpl.prototype, "value", {
             get: function () {
-                trackRefValue(this);
+                trackRefValue(this); // 该函数的目的是为了保存收集到的依赖函数,当简单数据类型通过 obj.value = 'xxx' 时,执行的是 RefImpl 的 setter
                 return this._value;
             },
-            set: function (newValue) { },
+            set: function (newValue) {
+                // setter 方法可以获取到 getter 保存的 dep
+                if (hasChanged(newValue, this._rawValue)) {
+                    this._rawValue = newValue;
+                    this._value = toReactive(newValue);
+                    triggerRefValue(this);
+                }
+            },
             enumerable: false,
             configurable: true
         });
@@ -239,6 +250,11 @@ var Vue = (function (exports) {
      */
     function isRef(r) {
         return !!(r && r.__v_isRef === true);
+    }
+    function triggerRefValue(ref) {
+        if (ref.dep) {
+            triggerEffects(ref.dep);
+        }
     }
 
     exports.effect = effect;

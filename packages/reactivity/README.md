@@ -28,3 +28,6 @@
 2. 当通过 object.value 时, 会触发实例的 get 方法，该方法返回的是 reactive 方法返回的对象
 3. object.value.xxx 实际上又会触发 reactive 的 getter/setter 中对应的 track/trigger
 4. effect 用于收集当前的回调函数并保存,  targetMap 需要用到当前的 ReactiveEffect 来将值保存到 (targetMap:WeakMap) 中
+5. 当简单数据类型 ref("xxx") 触发 setter 的时候,因为是简单数据类型，返回的不再是一个proxy的代理对象，所以会触发 RefImpl value 的 set 函数,在 set 函数中执行 dep 中保存的 Set 集合 fn 函数。 
+6. xxx.value.name 触发的仍然是 RefImpl 的 get 而该 getter 返回的是 proxy.name , 此时会触发代理对象的 baseHandlers
+7. 复杂数据类型触发的是代理对象的 setter, 简单数据类型触发的是 RefImpl 的 set,复杂数据类型的 setter 不会来到 RefImpl 的 set
