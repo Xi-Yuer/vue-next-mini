@@ -1,4 +1,5 @@
 # 响应式核心
+## reactive
 
 1. createReactiveObject 根据 target 创建一个代理对象劫持代理对象的    getter 和 setter并返回该代理对象
 2. 收集依赖
@@ -19,3 +20,11 @@
         1. effect 收集到的函数 fn 
         2. 触发 getter 时保存的 weakMap 对象
         3. target 结合 effect 函数保存的变量，组合起来保存到 weakMap 中 
+
+
+## ref
+
+1. ref 返回的是一个 RefImpl 的实例，该实例有对应 value 的 get 和 set 方法
+2. 当通过 object.value 时, 会触发实例的 get 方法，该方法返回的是 reactive 方法返回的对象
+3. object.value.xxx 实际上又会触发 reactive 的 getter/setter 中对应的 track/trigger
+4. effect 用于收集当前的回调函数并保存,  targetMap 需要用到当前的 ReactiveEffect 来将值保存到 (targetMap:WeakMap) 中
