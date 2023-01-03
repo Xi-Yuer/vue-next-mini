@@ -1,3 +1,4 @@
+import { ComputedImpl } from './computed'
 import { createDep, Dep } from './dep'
 
 export function effect<T = any>(fn: () => T) {
@@ -8,15 +9,20 @@ export function effect<T = any>(fn: () => T) {
 
 export let activeEffect: ReactiveEffect | undefined
 export class ReactiveEffect<T = any> {
-  constructor(public fn: () => T) {}
+  computed?: ComputedImpl<T>
+  constructor(
+    public fn: () => T,
+    public scheduler: EffectScheduler | null = null
+  ) {}
   run() {
     // 标记当前被激活的reactive
-    activeEffect = this // this:{fn: ƒ}
+    activeEffect = this // this:{computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
     return this.fn()
   }
 }
 
 type KeyToDepMap = Map<any, Dep>
+export type EffectScheduler = (...args: any[]) => any
 
 /**
  * 用于保存收集的依赖
@@ -79,6 +85,10 @@ export function triggerEffects(dep: Dep) {
   }
 }
 
-export function triggerEffect(effect:ReactiveEffect) {
-  effect.run()
+export function triggerEffect(effect: ReactiveEffect) {
+  if (effect.scheduler) {
+    effect.scheduler()
+  } else {
+    effect.run()
+  }
 }

@@ -7,6 +7,9 @@ var Vue = (function (exports) {
     var hasChanged = function (newValue, oldValue) {
         return !Object.is(newValue, oldValue);
     };
+    var isFunction = function (val) {
+        return typeof val === 'function';
+    };
 
     /******************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -74,12 +77,14 @@ var Vue = (function (exports) {
     }
     var activeEffect;
     var ReactiveEffect = /** @class */ (function () {
-        function ReactiveEffect(fn) {
+        function ReactiveEffect(fn, scheduler) {
+            if (scheduler === void 0) { scheduler = null; }
             this.fn = fn;
+            this.scheduler = scheduler;
         }
         ReactiveEffect.prototype.run = function () {
             // 标记当前被激活的reactive
-            activeEffect = this; // this:{fn: ƒ}
+            activeEffect = this; // this:{computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
             return this.fn();
         };
         return ReactiveEffect;
@@ -154,7 +159,12 @@ var Vue = (function (exports) {
         }
     }
     function triggerEffect(effect) {
-        effect.run();
+        if (effect.scheduler) {
+            effect.scheduler();
+        }
+        else {
+            effect.run();
+        }
     }
 
     var get = createGetter();
@@ -257,6 +267,47 @@ var Vue = (function (exports) {
         }
     }
 
+    function computed(getterOrOptions) {
+        var getter;
+        var onlyGetter = isFunction(getterOrOptions);
+        if (onlyGetter) {
+            getter = getterOrOptions;
+        }
+        var cRef = new ComputedImpl(getter); // cRef => {dep: Set(1) ,__v_isRef: true, _dirty: true, effect: ReactiveEffect}
+        console.log(cRef);
+        return cRef;
+    }
+    var ComputedImpl = /** @class */ (function () {
+        function ComputedImpl(getter) {
+            var _this = this;
+            this.dep = undefined;
+            this.__v_isRef = true;
+            this._dirty = true; // 为 true 表示需要重新执行 run 方法
+            this.effect = new ReactiveEffect(getter, function () {
+                if (!_this._dirty) {
+                    _this._dirty = true;
+                    triggerRefValue(_this);
+                }
+            });
+            this.effect.computed = this; // effect => {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
+        }
+        Object.defineProperty(ComputedImpl.prototype, "value", {
+            get: function () {
+                trackRefValue(this);
+                if (this._dirty) {
+                    this._dirty = false;
+                    this._value = this.effect.run();
+                }
+                return this._value;
+            },
+            set: function (newValue) { },
+            enumerable: false,
+            configurable: true
+        });
+        return ComputedImpl;
+    }());
+
+    exports.computed = computed;
     exports.effect = effect;
     exports.reactive = reactive;
     exports.ref = ref;
