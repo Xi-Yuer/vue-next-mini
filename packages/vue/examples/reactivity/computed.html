@@ -13,7 +13,6 @@
     <div id="app"></div>
     <script>
         const { computed, reactive, effect } = Vue
-
         const obj = reactive({
             name: 'Tom'
         })
@@ -22,7 +21,7 @@
             return "姓名" + obj.name
         })
 
-        const e = effect(() => {
+        effect(() => {
             document.querySelector('#app').innerHTML = computedObj.value
         })
 

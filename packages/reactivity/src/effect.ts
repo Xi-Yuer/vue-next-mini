@@ -7,7 +7,7 @@ export function effect<T = any>(fn: () => T) {
   _effect.run()
 }
 
-export let activeEffect: ReactiveEffect | undefined
+export let activeEffect: ReactiveEffect | undefined // {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
 export class ReactiveEffect<T = any> {
   computed?: ComputedImpl<T>
   constructor(
@@ -16,7 +16,7 @@ export class ReactiveEffect<T = any> {
   ) {}
   run() {
     // 标记当前被激活的reactive
-    activeEffect = this // this:{computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
+    activeEffect = this
     return this.fn()
   }
 }
@@ -70,7 +70,7 @@ export function trigger(target: object, key: unknown, newValue: unknown) {
   const dep: Dep | undefined = depsMap.get(key) // 获取到对应的
   if (!dep) return
 
-  // 如果 effect 存在 则执行指定属性对应的函数（依赖触发）
+  // 如果 effect 存在 则执行指定属性对应的函数（依赖触发
   triggerEffects(dep)
 }
 

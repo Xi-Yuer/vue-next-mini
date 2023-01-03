@@ -13,7 +13,6 @@ export function computed(getterOrOptions) {
   }
 
   const cRef = new ComputedImpl(getter) // cRef => {dep: Set(1) ,__v_isRef: true, _dirty: true, effect: ReactiveEffect}
-  console.log(cRef)
   return cRef
 }
 
@@ -27,14 +26,14 @@ export class ComputedImpl<T> {
     this.effect = new ReactiveEffect(getter, () => {
       if (!this._dirty) {
         this._dirty = true
-        triggerRefValue(this)
+        triggerRefValue(this) // 执行 dep 里面保存的所有函数
       }
     })
     this.effect.computed = this // effect => {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
   }
 
   get value() {
-    trackRefValue(this)
+    trackRefValue(this) // 将 effect 收集到的函数保存到 dep 中
     if (this._dirty) {
       this._dirty = false
       this._value = this.effect.run()

@@ -75,7 +75,7 @@ var Vue = (function (exports) {
         // 第一次执行
         _effect.run();
     }
-    var activeEffect;
+    var activeEffect; // {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
     var ReactiveEffect = /** @class */ (function () {
         function ReactiveEffect(fn, scheduler) {
             if (scheduler === void 0) { scheduler = null; }
@@ -84,7 +84,7 @@ var Vue = (function (exports) {
         }
         ReactiveEffect.prototype.run = function () {
             // 标记当前被激活的reactive
-            activeEffect = this; // this:{computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
+            activeEffect = this;
             return this.fn();
         };
         return ReactiveEffect;
@@ -134,7 +134,7 @@ var Vue = (function (exports) {
         var dep = depsMap.get(key); // 获取到对应的
         if (!dep)
             return;
-        // 如果 effect 存在 则执行指定属性对应的函数（依赖触发）
+        // 如果 effect 存在 则执行指定属性对应的函数（依赖触发
         triggerEffects(dep);
     }
     /**
@@ -274,7 +274,6 @@ var Vue = (function (exports) {
             getter = getterOrOptions;
         }
         var cRef = new ComputedImpl(getter); // cRef => {dep: Set(1) ,__v_isRef: true, _dirty: true, effect: ReactiveEffect}
-        console.log(cRef);
         return cRef;
     }
     var ComputedImpl = /** @class */ (function () {
@@ -286,14 +285,14 @@ var Vue = (function (exports) {
             this.effect = new ReactiveEffect(getter, function () {
                 if (!_this._dirty) {
                     _this._dirty = true;
-                    triggerRefValue(_this);
+                    triggerRefValue(_this); // 执行 dep 里面保存的所有函数
                 }
             });
             this.effect.computed = this; // effect => {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
         }
         Object.defineProperty(ComputedImpl.prototype, "value", {
             get: function () {
-                trackRefValue(this);
+                trackRefValue(this); // 将 effect 收集到的函数保存到 dep 中
                 if (this._dirty) {
                     this._dirty = false;
                     this._value = this.effect.run();
