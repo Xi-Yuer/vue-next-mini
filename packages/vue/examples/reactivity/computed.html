@@ -18,10 +18,12 @@
         })
 
         const computedObj = computed(() => {
+            console.log("计算属性执行")
             return "姓名" + obj.name
         })
 
         effect(() => {
+            document.querySelector('#app').innerHTML = computedObj.value
             document.querySelector('#app').innerHTML = computedObj.value
         })
 

@@ -142,12 +142,14 @@ var Vue = (function (exports) {
      * @param dep
      */
     function triggerEffects(dep) {
-        var e_1, _a;
+        var e_1, _a, e_2, _b;
         var effects = Array.isArray(dep) ? dep : __spreadArray([], __read(dep), false);
         try {
             for (var effects_1 = __values(effects), effects_1_1 = effects_1.next(); !effects_1_1.done; effects_1_1 = effects_1.next()) {
                 var effect_1 = effects_1_1.value;
-                triggerEffect(effect_1);
+                if (effect_1.computed) {
+                    triggerEffect(effect_1);
+                }
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -156,6 +158,21 @@ var Vue = (function (exports) {
                 if (effects_1_1 && !effects_1_1.done && (_a = effects_1.return)) _a.call(effects_1);
             }
             finally { if (e_1) throw e_1.error; }
+        }
+        try {
+            for (var effects_2 = __values(effects), effects_2_1 = effects_2.next(); !effects_2_1.done; effects_2_1 = effects_2.next()) {
+                var effect_2 = effects_2_1.value;
+                if (!effect_2.computed) {
+                    triggerEffect(effect_2);
+                }
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (effects_2_1 && !effects_2_1.done && (_b = effects_2.return)) _b.call(effects_2);
+            }
+            finally { if (e_2) throw e_2.error; }
         }
     }
     function triggerEffect(effect) {
@@ -273,7 +290,8 @@ var Vue = (function (exports) {
         if (onlyGetter) {
             getter = getterOrOptions;
         }
-        var cRef = new ComputedImpl(getter); // cRef => {dep: Set(1) ,__v_isRef: true, _dirty: true, effect: ReactiveEffect}
+        // cRef => {dep: Set(1) ,__v_isRef: true, _dirty: true, effect: ReactiveEffect}
+        var cRef = new ComputedImpl(getter);
         return cRef;
     }
     var ComputedImpl = /** @class */ (function () {
@@ -288,7 +306,8 @@ var Vue = (function (exports) {
                     triggerRefValue(_this); // 执行 dep 里面保存的所有函数
                 }
             });
-            this.effect.computed = this; // effect => {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
+            // effect => {computed: ComputedImpl, fn: ƒ, scheduler: ƒ}
+            this.effect.computed = this;
         }
         Object.defineProperty(ComputedImpl.prototype, "value", {
             get: function () {
